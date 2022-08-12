@@ -1,14 +1,16 @@
 // ignore_for_file: invalid_use_of_protected_member
 
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:ios_will_pop_scope/ios_will_pop_scope.dart';
 import 'package:ios_will_pop_scope/src/ios_back_gesture_detector_controller.dart';
 
-bool isPopGestureInProgress(PageRoute<dynamic> route) {
+bool isPopGestureInProgress(ModalRoute<Object?> route) {
   return route.navigator!.userGestureInProgress;
 }
 
-bool isPopGestureEnabled<T>(PageRoute<T> route) {
+bool isPopGestureEnabled<T>(ModalRoute<Object?> route) {
   // If there's nothing to go back to, then obviously we don't support
   // the back gesture.
   if (route.isFirst) return false;
@@ -19,7 +21,6 @@ bool isPopGestureEnabled<T>(PageRoute<T> route) {
   // with forms, then do not allow the user to dismiss the route with a swipe.
   if (route.hasScopedWillPopCallback) return false;
   // Fullscreen dialogs aren't dismissible by back swipe.
-  if (route.fullscreenDialog) return false;
   // If we're in an animation already, we cannot be manually swiped.
   if (route.animation!.status != AnimationStatus.completed) return false;
   // If we're being popped into, we also cannot be swiped until the pop above
@@ -35,7 +36,7 @@ bool isPopGestureEnabled<T>(PageRoute<T> route) {
   return true;
 }
 
-IosBackGestureController<T> startPopGesture<T>(PageRoute<T> route) {
+IosBackGestureController<T> startPopGesture<T>(ModalRoute<Object?> route) {
   assert(isPopGestureEnabled(route));
 
   final onWillPop = (route.settings as IosRouteSettings).onWillPop;
@@ -45,4 +46,10 @@ IosBackGestureController<T> startPopGesture<T>(PageRoute<T> route) {
     controller: route.controller!,
     onWillPop: onWillPop, // protected access
   );
+}
+
+bool needToUseIosWillPop(ModalRoute<Object?> route) {
+  return route.settings is IosRouteSettings &&
+      (route.settings as IosRouteSettings).onWillPop != null &&
+      Platform.isIOS;
 }

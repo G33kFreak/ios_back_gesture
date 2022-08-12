@@ -15,11 +15,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: {
-            TargetPlatform.iOS: IosPageTransitionsBuilder(),
-          },
-        ),
         primarySwatch: Colors.red,
       ),
       home: const MainScreen(),
@@ -32,34 +27,28 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        print('willPop() for other platforms!');
-        return Future.value(true);
-      },
-      child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      settings: IosRouteSettings(
-                        onWillPop: () {
-                          print('willPop() for iOS only!');
-                          return Future.value(true);
-                        },
-                      ),
-                      builder: (context) => const SecondScreen(),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            OutlinedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  IosPageRouteBuilder(
+                    routeSettings: IosRouteSettings(
+                      onWillPop: () {
+                        print('Some action!');
+                        return Future.value(false);
+                      },
                     ),
-                  );
-                },
-                child: const Text('To second screen'),
-              ),
-            ],
-          ),
+                    pageBuilder: (context, _, __) => const SecondScreen(),
+                  ),
+                );
+              },
+              child: const Text('To second screen'),
+            ),
+          ],
         ),
       ),
     );
@@ -72,7 +61,16 @@ class SecondScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      // We need to configure this button as well, since adding
+      // ios back gesture conflicts with WillPopScope. Once again
+      // it affects iOS version only
+      appBar: AppBar(
+        leading: BackButton(
+          onPressed: () {
+            print('Some action!');
+          },
+        ),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
