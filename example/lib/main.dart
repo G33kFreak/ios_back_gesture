@@ -15,6 +15,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.iOS: IosWillPopScopePageBuilder(),
+          },
+        ),
         primarySwatch: Colors.red,
       ),
       home: const MainScreen(),
@@ -35,14 +40,8 @@ class MainScreen extends StatelessWidget {
             OutlinedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  IosPageRouteBuilder(
-                    routeSettings: IosRouteSettings(
-                      onWillPop: () {
-                        print('Some action!');
-                        return Future.value(false);
-                      },
-                    ),
-                    pageBuilder: (context, _, __) => const SecondScreen(),
+                  MaterialPageRoute(
+                    builder: (context) => const SecondScreen(),
                   ),
                 );
               },
@@ -58,25 +57,24 @@ class MainScreen extends StatelessWidget {
 class SecondScreen extends StatelessWidget {
   const SecondScreen({Key? key}) : super(key: key);
 
+  Future<bool> _onWillPop() async {
+    print('Some action!!!');
+    return Future.value(false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // We need to configure this button as well, since adding
-      // ios back gesture conflicts with WillPopScope. Once again
-      // it affects iOS version only
-      appBar: AppBar(
-        leading: BackButton(
-          onPressed: () {
-            print('Some action!');
-          },
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text('second screen'),
-          ],
+    return IosWillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text('second screen'),
+            ],
+          ),
         ),
       ),
     );
